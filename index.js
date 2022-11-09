@@ -27,6 +27,13 @@ async function run() {
   try {
     const serviceCollection = client.db('essuin').collection('service')
 
+    app.get('/all-services', async (req, res) => {
+      const query = {}
+      const cursor = serviceCollection.find(query)
+      const courses = await cursor.toArray()
+      res.send( courses)
+    })
+
     app.get('/services', async (req, res) => {
       const query = {}
       const cursor = serviceCollection.find(query)
