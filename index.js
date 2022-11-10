@@ -1,3 +1,4 @@
+const jwt = require("jsonwebtoken")
 require('dotenv').config()
 const express = require("express");
 const cors = require("cors");
@@ -15,7 +16,21 @@ app.get('/', (req, res) => {
   res.send('essuin running is a express')
 })
 
+function verifyJWT(req, res, next) {
+  const authHeader = req.headers.authorization
+  if (!authHeader) {
+    return res.status(401).send({ massage: 'Unauthorized user' })
+  }
+  const token = authHeader.split(' ')[1]
+  jwt.verify(token, process.env.ACCESS_TOKEN, (error, decoded) => {
 
+    if (error) {
+      return res.status(401).send({ massage: 'Unauthorized user' })
+    }
+    req.decoded = decoded
+  })
+  next()
+}
 
 
 
@@ -36,7 +51,14 @@ async function run() {
       const service = await serviceCollection.findOne(query)
       res.send(service)
     })
+    // jwt 
+    app.post('/jwt', (req, res) => {
+      const user = req.body
+      console.log(user)
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN, { expiresIn: '23hr' })
+      res.send({ token })
 
+    })
     // get all services
     app.get('/all-services', async (req, res) => {
       const query = {}
@@ -93,8 +115,25 @@ async function run() {
       const query = { _id: ObjectId(id) }
       const reviews = await reviewCollection.deleteOne(query)
       res.send(reviews)
+    })
+
+
+    app.patch('/reviews/:id', async (req, res) => {
+      const id = req.params.id
+      const massage = req.body.massage
+      const review = req.body.review
+      const query = {_id : ObjectId(id)} 
+      const updated = {$set : {massage, review }}
+      const result = await reviewCollection.updateMany(query, updated)
+      res.send(result) 
   })
 
+
+    app.post('/services', async (req, res) => {
+      const service = req.body;
+      const result = await serviceCollection.insertOne(service)
+      res.send(result)
+    })
   }
   finally { }
 
