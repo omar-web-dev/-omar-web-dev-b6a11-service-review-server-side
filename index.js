@@ -51,31 +51,41 @@ async function run() {
       const courses = await cursor.limit(3).toArray()
       res.send(courses)
     })
+
+
+    app.get('/reviews-email', async (req, res) => {
+      // find out email 
+      let query = {}
+      if (req.query.email) {
+        query = {
+          email: req.query.email
+        }
+      }
+      const cursor = reviewCollection.find(query)
+      const review = await cursor.toArray()
+      res.send(review)
+    })
+
+
     // get reviews filter by service id
     app.get('/reviews', async (req, res) => {
       let query = {}
-      if(req.query.service_ID){
+      if (req.query.service_ID) {
         query = {
-           service_ID : req.query.service_ID
+          service_ID: req.query.service_ID
         }
       }
-          const cursor = reviewCollection.find(query)
-          const review = await cursor.toArray()
-          res.send(review)
-      })
+      const cursor = reviewCollection.find(query)
+      const review = await cursor.toArray()
+      res.send(review)
+    })
 
-      app.get('/reviews', async (req, res) => {
-        // find out email 
-        let query = {}
-        if(req.query.email){
-            query = {
-                email : req.query.email
-            }
-        }
-            const cursor = reviewCollection.find(query)
-            const order = await cursor.toArray()
-            res.send(order)
-        })
+
+    app.post('/reviews', async (req, res) => {
+      const review = req.body;
+      const result = await reviewCollection.insertOne(review)
+      res.send(result)
+    })
 
   }
   finally { }
